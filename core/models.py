@@ -106,6 +106,9 @@ class Clue(models.Model):
     reference_image = models.ImageField(
         upload_to=clue_image_path,
         max_length=255,
+        null=True,
+        blank=True,
+        help_text="Image related to the clue.",
     )
     image_embedding = JSONField(
         null=True,
