@@ -9,7 +9,8 @@ import os
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.db.models import JSONField
+
+from pgvector.django import VectorField
 
 
 def clue_image_path(instance, filename):
@@ -110,7 +111,8 @@ class Clue(models.Model):
         blank=True,
         help_text="Image related to the clue.",
     )
-    image_embedding = JSONField(
+    image_embedding = VectorField(
+        dimensions=512,
         null=True,
         blank=True,
         help_text="LLM embedding of the reference image",
