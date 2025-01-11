@@ -86,6 +86,12 @@ class TreasureHunt(models.Model):
     def __str__(self):
         return self.title
 
+    def delete(self, *args, **kwargs):
+        # Delete the image from S3 if it exists
+        if self.image:
+            self.image.delete(save=False)
+        super().delete(*args, **kwargs)
+
 
 class Clue(models.Model):
     """
@@ -124,6 +130,12 @@ class Clue(models.Model):
 
     def __str__(self):
         return f"Clue {self.order} - {self.treasure_hunt.title}"
+
+    def delete(self, *args, **kwargs):
+        # Delete the image from S3 if it exists
+        if self.reference_image:
+            self.reference_image.delete(save=False)
+        super().delete(*args, **kwargs)
 
 
 class UserProgress(models.Model):
