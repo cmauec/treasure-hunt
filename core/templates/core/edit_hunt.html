@@ -14,6 +14,7 @@
 
     <form id="huntForm" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
+        <input type="hidden" name="timezone" id="timezone">
         <div class="card mb-4">
             <div class="card-header">
                 <h3>General Information</h3>
@@ -47,7 +48,7 @@
                 </div>
                 <div class="mb-3">
                     <label for="end_date" class="form-label">End Date</label>
-                    <input type="datetime-local" class="form-control" id="end_date" name="end_date" value="{{ treasure_hunt.end_date|date:'Y-m-d\TH:i' }}">
+                    <input type="datetime-local" class="form-control local-date" id="end_date" name="end_date" value="{{ treasure_hunt.end_date|date:'Y-m-d\TH:i' }}">
                     <div class="form-text">Date and time when the treasure hunt ends (optional)</div>
                 </div>
                 <div class="form-check mb-3">
@@ -152,6 +153,8 @@
     let clueCount = 0;
     const existingClues = {{ clues_json | safe }};
 
+    document.getElementById('timezone').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     function addClue(clueData = null) {
         clueCount++;
         const template = document.getElementById('clueTemplate');
@@ -232,6 +235,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         loadingOverlay.show();
         existingClues.forEach(clue => addClue(clue));
+        const localDateInputs = document.querySelectorAll('.local-date');
+        localDateInputs.forEach(input => {
+            const utcDate = new Date(input.value + 'Z');
+            const localDateString = utcDate.getFullYear() + '-' +
+                String(utcDate.getMonth() + 1).padStart(2, '0') + '-' +
+                String(utcDate.getDate()).padStart(2, '0') + 'T' +
+                String(utcDate.getHours()).padStart(2, '0') + ':' +
+                String(utcDate.getMinutes()).padStart(2, '0');
+            input.value = localDateString;
+        });
         loadingOverlay.hide();
     });
 

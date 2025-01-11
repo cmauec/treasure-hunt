@@ -3,7 +3,9 @@ Views for the core app.
 """
 
 import json
+from datetime import datetime
 
+import pytz
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -286,6 +288,28 @@ def create_hunt(request):
         return redirect("treasure_hunt_list")
 
     if request.method == "POST":
+        end_date_str = request.POST.get("end_date")
+        user_timezone = request.POST.get("timezone", "UTC")
+        if end_date_str:
+            # Parse the datetime string
+            local_datetime = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M")
+
+            # Get the user's timezone
+            try:
+                user_tz = pytz.timezone(user_timezone)
+            except pytz.exceptions.UnknownTimeZoneError:
+                user_tz = pytz.UTC
+
+            # Localize the datetime to user's timezone
+            local_datetime = user_tz.localize(local_datetime)
+
+            # Convert to UTC
+            utc_datetime = local_datetime.astimezone(pytz.UTC)
+
+            # Remove timezone info if your model field is not timezone-aware
+            end_date = utc_datetime.replace(tzinfo=None)
+        else:
+            end_date = None
         try:
             # Create the treasure hunt
             hunt = TreasureHunt.objects.create(
@@ -295,7 +319,7 @@ def create_hunt(request):
                 is_public=request.POST.get("is_public") == "on",
                 points_per_clue=int(request.POST.get("points_per_clue", 10)),
                 completion_points=int(request.POST.get("completion_points", 50)),
-                end_date=request.POST.get("end_date") or None,
+                end_date=end_date,
             )
 
             # Handle main image upload
@@ -383,11 +407,33 @@ def edit_hunt(request, hunt_id):
         return redirect("treasure_hunt_list")
 
     if request.method == "POST":
+        end_date_str = request.POST.get("end_date")
+        user_timezone = request.POST.get("timezone", "UTC")
+        if end_date_str:
+            # Parse the datetime string
+            local_datetime = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M")
+
+            # Get the user's timezone
+            try:
+                user_tz = pytz.timezone(user_timezone)
+            except pytz.exceptions.UnknownTimeZoneError:
+                user_tz = pytz.UTC
+
+            # Localize the datetime to user's timezone
+            local_datetime = user_tz.localize(local_datetime)
+
+            # Convert to UTC
+            utc_datetime = local_datetime.astimezone(pytz.UTC)
+
+            # Remove timezone info if your model field is not timezone-aware
+            end_date = utc_datetime.replace(tzinfo=None)
+        else:
+            end_date = None
         try:
             hunt.title = request.POST.get("title")
             hunt.description = request.POST.get("description")
             hunt.is_public = request.POST.get("is_public") == "on"
-            hunt.end_date = request.POST.get("end_date") or None
+            hunt.end_date = end_date
 
             remove_image = request.POST.get("remove_image")
             main_image = request.FILES.get("image")
