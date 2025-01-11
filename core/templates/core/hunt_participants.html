@@ -1,0 +1,90 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Participants - {{ treasure_hunt.title }}{% endblock %}
+
+{% block content %}
+{% include 'core/components/loading.html' %}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Participants</h1>
+            <h4 class="text-muted">{{ treasure_hunt.title }}</h4>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'hunt_details' treasure_hunt.id %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Details
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% if participants %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Participant</th>
+                                <th>Inscription date</th>
+                                <th>Status</th>
+                                <th>Points</th>
+                                <th>Progress</th>
+                                <th>Completion date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participant in participants %}
+                            <tr>
+                                <td>{{ participant.user.username }}</td>
+                                <td>{{ participant.started_at|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if participant.is_completed %}
+                                        <span class="badge bg-success">Completed</span>
+                                    {% else %}
+                                        <span class="badge bg-info">In Progress</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ participant.total_points }}</td>
+                                <td>
+                                    {% if participant.current_clue %}
+                                        Clue {{ participant.current_clue.order }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if participant.completed_at %}
+                                        {{ participant.completed_at|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    There are no participants in this hunt yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadingOverlay.show();
+        setTimeout(() => loadingOverlay.hide(), 300);
+    });
+
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && !e.ctrlKey && !e.shiftKey && !e.metaKey && !e.altKey) {
+            loadingOverlay.show();
+        }
+    });
+</script>
+{% endblock %} 

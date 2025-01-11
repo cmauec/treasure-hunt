@@ -1,0 +1,235 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Treasure Hunt List{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+{% include 'core/components/loading.html' %}
+
+<div class="row mb-4">
+    <div class="col">
+        <h1>Treasure Hunt List</h1>
+    </div>
+    {% if perms.core.can_create_hunts %}
+    <div class="col-auto">
+        <a href="{% url 'create_hunt' %}" class="btn btn-primary me-2">
+            <i class="bi bi-plus-circle"></i> Create New Hunt
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for hunt in treasure_hunts %}
+    <div class="col">
+        <div class="card h-100 {% if hunt.is_expired %}border-danger{% endif %}" data-hunt-id="{{ hunt.hunt.id }}">
+            {% if hunt.hunt.image %}
+                <div class="hunt-image-container">
+                    <img src="{{ hunt.hunt.image.url }}" class="hunt-image" alt="Imagen de {{ hunt.hunt.title }}">
+                </div>
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title">{{ hunt.hunt.title }}</h5>
+                    <div>
+                        {% if hunt.is_completed %}
+                        <span class="badge bg-success">Completed</span>
+                        {% endif %}
+                        {% if hunt.is_expired %}
+                        <span class="badge bg-danger">Ended</span>
+                        {% endif %}
+                        {% if hunt.hunt.is_public %}
+                            <span class="badge bg-info">Public</span>
+                        {% else %}
+                            <span class="badge bg-warning">Private</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="card-text">{{ hunt.hunt.description }}</p>
+                
+                {% if hunt.hunt.end_date %}
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar-event"></i> Ends: 
+                        <span class="local-date" data-utc="{{ hunt.hunt.end_date|date:'Y-m-d\TH:i:s\Z' }}">
+                            {{ hunt.hunt.end_date|date:"d/m/Y H:i" }}
+                        </span>
+                    </small>
+                </p>
+                {% endif %}
+                
+                <!-- Puntos y Progreso -->
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted">Progress</span>
+                        <span class="badge bg-primary">{{ hunt.total_points }} points</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar {% if hunt.is_completed %}bg-success{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ hunt.progress_percentage }}%;" 
+                             aria-valuenow="{{ hunt.progress_percentage }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+
+                <p class="card-text mt-3">
+                    <small class="text-muted">
+                        Created by: {{ hunt.hunt.creator.username }}<br>
+                        Date: {{ hunt.hunt.created_at|date:"d/m/Y" }}
+                    </small>
+                </p>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        {% if hunt.hunt.creator == user %}
+                        <span class="badge bg-secondary me-2">Created by you</span>
+                        <a href="{% url 'hunt_details' hunt.hunt.id %}" class="btn btn-warning">
+                            <i class="bi bi-pencil"></i> Manage
+                        </a>
+                        {% else %}
+                            {% if hunt.is_expired %}
+                            <button class="btn btn-secondary" disabled>
+                                Hunt Ended
+                            </button>
+                            {% else %}
+                            <a href="{% url 'hunt_details' hunt.hunt.id %}" class="btn btn-success">
+                                {% if hunt.is_completed %}
+                                    View Details
+                                {% elif hunt.progress_percentage > 0 %}
+                                    View Progress
+                                {% else %}
+                                    View Details
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% if hunt.hunt.creator == user %}
+                    <button type="button" 
+                        onclick="deleteTreasureHunt('{{ hunt.hunt.id }}', '{{ hunt.hunt.title|escapejs }}')"
+                        class="btn btn-danger">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            There are no treasure hunts available at this moment.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Agregar los íconos de Bootstrap -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+
+<style>
+    .hunt-image-container {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .hunt-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+    }
+</style>
+
+<script>
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Show loading on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadingOverlay.show();
+        convertDatesToLocalTime();
+        loadingOverlay.hide();
+    });
+
+    function deleteTreasureHunt(huntId, title) {
+        if (confirm(`Are you sure you want to delete the hunt "${title}"?`)) {
+            loadingOverlay.show();
+            fetch(`/treasure-hunts/delete/${huntId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    loadingOverlay.hide();
+                    if (data.success) {
+                        const card = document.querySelector(`[data-hunt-id="${huntId}"]`);
+                        if (card) {
+                            const column = card.closest('.col');
+                            if (column) {
+                                column.remove();
+                                showMessage('success', `The hunt "${title}" has been deleted.`);
+                                
+                                const gridContainer = document.querySelector('.row.row-cols-1.row-cols-md-3.g-4');
+                                if (gridContainer.children.length === 0) {
+                                    gridContainer.innerHTML = `
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            There are no treasure hunts available at this moment.
+                                        </div>
+                                    </div>`;
+                                }
+                            }
+                        }
+                    } else {
+                        showMessage('danger', data.error || 'Error deleting the hunt');
+                    }
+                })
+                .catch(error => {
+                    loadingOverlay.hide();
+                    console.error('Error:', error);
+                    showMessage('danger', 'Error deleting the hunt');
+                });
+        }
+    }
+
+    function convertDatesToLocalTime() {
+        document.querySelectorAll('.local-date').forEach(element => {
+            const utcDate = new Date(element.dataset.utc);
+            const options = { 
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            };
+            element.textContent = utcDate.toLocaleString('es-ES', options);
+        });
+    }
+
+    function showMessage(type, text) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+        alertDiv.role = 'alert';
+        alertDiv.innerHTML = `
+            ${text}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        const content = document.querySelector('.row.mb-4').parentNode;
+        content.insertBefore(alertDiv, content.firstChild);
+
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 3000);
+    }
+</script>
+{% endblock %}

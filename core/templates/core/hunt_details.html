@@ -1,0 +1,178 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ treasure_hunt.title }} - Details{% endblock %}
+
+{% block content %}
+{% include 'core/components/loading.html' %}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'treasure_hunt_list' %}">Treasure Hunts</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ treasure_hunt.title }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">{{ treasure_hunt.title }}</h2>
+            <div>
+                {% if treasure_hunt.is_public %}
+                    <span class="badge bg-info">Public</span>
+                {% else %}
+                    <span class="badge bg-warning">Private</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5 class="card-title">Description</h5>
+                    <p class="card-text">{{ treasure_hunt.description }}</p>
+                    {% if treasure_hunt.image %}
+                        <img src="{{ treasure_hunt.image.url }}" alt="Image of the hunt" class="img-fluid mb-3 rounded">
+                    {% endif %}
+
+                    {% if treasure_hunt.end_date %}
+                    <p class="card-text">
+                        <strong><i class="bi bi-calendar-event"></i> End Date:</strong>
+                        <span class="local-date" data-utc="{{ treasure_hunt.end_date|date:'Y-m-d\TH:i:s\Z' }}">
+                            {{ treasure_hunt.end_date|date:"d/m/Y H:i" }}
+                        </span>
+                    </p>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <h5>Details</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <i class="bi bi-geo-alt"></i> Number of clues: {{ total_clues }}
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-star"></i> Points per clue: {{ treasure_hunt.points_per_clue }}
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-trophy"></i> Points for completion: {{ treasure_hunt.completion_points }}
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-calculator"></i> Total possible points: {{ total_possible_points }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Status</h5>
+                            {% if is_creator %}
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    You cannot participate in a hunt you have created
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <a href="{% url 'edit_hunt' treasure_hunt.id %}" class="btn btn-warning">
+                                        <i class="bi bi-pencil"></i> Edit Hunt
+                                    </a>
+                                    <a href="{% url 'hunt_participants' treasure_hunt.id %}" class="btn btn-info">
+                                        <i class="bi bi-people"></i> View Participants
+                                    </a>
+                                </div>
+                            {% elif is_expired %}
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                    This hunt has ended
+                                </div>
+                            {% else %}
+                                {% if user_progress %}
+                                    {% if user_progress.is_completed %}
+                                        <div class="alert alert-success">
+                                            <i class="bi bi-check-circle"></i>
+                                            You have completed this hunt!
+                                        </div>
+                                        <p>Points obtained: {{ user_progress.total_points }}</p>
+                                        <a href="{% url 'view_hunt' treasure_hunt.id %}" class="btn btn-primary w-100">
+                                            View Details
+                                        </a>
+                                    {% else %}
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle"></i>
+                                            You have a hunt in progress
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <small class="text-muted">Progress</small>
+                                            <span class="badge bg-primary">{{ user_progress.total_points }} / {{ total_possible_points }} points</span>
+                                        </div>
+                                        <div class="progress mb-3">
+                                            <div class="progress-bar" role="progressbar" 
+                                                style="width: {{ progress_percentage }}%">
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'view_hunt' treasure_hunt.id %}" class="btn btn-primary w-100">
+                                            Continue Hunt
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle"></i>
+                                        You have not started this hunt yet
+                                    </div>
+                                    <a href="{% url 'inscribe_hunt' treasure_hunt.id %}" class="btn btn-success w-100 mb-3">
+                                        <i class="bi bi-pencil-square"></i> Inscribe in this hunt
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">Created by</h6>
+                            <p class="card-text">{{ treasure_hunt.creator.username }}</p>
+                            <h6 class="card-subtitle mb-2 text-muted">Creation date</h6>
+                            <p class="card-text">{{ treasure_hunt.created_at|date:"d/m/Y" }}</p>
+                            {% if user_progress %}
+                                    <h6 class="card-subtitle mb-2 text-muted">Inscription date</h6>
+                                <p class="card-text">{{ user_progress.started_at|date:"d/m/Y H:i" }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        loadingOverlay.show();
+        convertDatesToLocalTime();
+        loadingOverlay.hide();
+    });
+
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && !e.ctrlKey && !e.shiftKey && !e.metaKey && !e.altKey) {
+            loadingOverlay.show();
+        }
+    });
+
+    function convertDatesToLocalTime() {
+        document.querySelectorAll('.local-date').forEach(element => {
+            const utcDate = new Date(element.dataset.utc);
+            const options = { 
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            };
+            element.textContent = utcDate.toLocaleString('es-ES', options);
+        });
+    }
+</script>
+{% endblock %} 

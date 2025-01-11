@@ -14,9 +14,23 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.shortcuts import redirect
+from core.views import login_view
+
+
+def redirect_to_treasure_hunts(request):
+    """
+    Redirects to the treasure hunt list page.
+    """
+    return redirect("treasure_hunt_list")
+
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("", redirect_to_treasure_hunts, name="home"),
+    path("admin/", admin.site.urls),
+    path("treasure-hunts/", include("core.urls")),
+    path("login/", login_view, name="login"),
 ]
