@@ -149,3 +149,8 @@ STATIC_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Login configuration
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "treasure_hunt_list"
+LOGOUT_REDIRECT_URL = "login"
