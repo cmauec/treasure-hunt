@@ -77,7 +77,12 @@
                     if (data.completed) {
                         setTimeout(() => window.location.reload(), 2000);
                     } else if (data.next_clue) {
-                        setTimeout(() => window.location.reload(), 2000);
+                        const statusDiv = document.getElementById('locationStatus');
+                        const nextButton = document.createElement('button');
+                        nextButton.className = 'btn btn-success mt-3';
+                        nextButton.textContent = 'Next Clue';
+                        nextButton.onclick = () => window.location.reload();
+                        statusDiv.appendChild(nextButton);
                     }
                 } else {
                     showStatus(data.message, 'warning');
