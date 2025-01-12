@@ -77,6 +77,10 @@ class TreasureHunt(models.Model):
     completion_points = models.IntegerField(
         default=50, help_text="Points awarded for completing the entire hunt"
     )
+    completion_message = models.TextField(
+        default="Congratulations! You have completed the treasure hunt.",
+        help_text="Message displayed when the user completes the hunt",
+    )
 
     class Meta:
         permissions = [
