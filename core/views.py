@@ -319,6 +319,10 @@ def create_hunt(request):
                 is_public=request.POST.get("is_public") == "on",
                 points_per_clue=int(request.POST.get("points_per_clue", 10)),
                 completion_points=int(request.POST.get("completion_points", 50)),
+                completion_message=request.POST.get(
+                    "completion_message",
+                    "Congratulations! You have completed the treasure hunt.",
+                ),
                 end_date=end_date,
             )
 
@@ -434,6 +438,9 @@ def edit_hunt(request, hunt_id):
             hunt.description = request.POST.get("description")
             hunt.is_public = request.POST.get("is_public") == "on"
             hunt.end_date = end_date
+            hunt.completion_message = request.POST.get(
+                "completion_message", hunt.completion_message
+            )
 
             remove_image = request.POST.get("remove_image")
             main_image = request.FILES.get("image")
