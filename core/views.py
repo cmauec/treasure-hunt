@@ -353,8 +353,9 @@ def create_hunt(request):
                 if reference_image:
                     optimized_image = optimize_image(reference_image)
                     clue.reference_image = optimized_image
-                    image_embedding = generate_image_embedding(reference_image)
-                    clue.image_embedding = image_embedding
+                    # Disabled due to high memory load; consider separating into another process
+                    # image_embedding = generate_image_embedding(reference_image)
+                    # clue.image_embedding = image_embedding
                     clue.save()
 
                 clue_count += 1
@@ -506,8 +507,9 @@ def edit_hunt(request, hunt_id):
                 elif reference_image:
                     optimized_image = optimize_image(reference_image)
                     clue.reference_image = optimized_image
-                    image_embedding = generate_image_embedding(reference_image)
-                    clue.image_embedding = image_embedding
+                    # Disabled due to high memory load; consider separating into another process
+                    # image_embedding = generate_image_embedding(reference_image)
+                    # clue.image_embedding = image_embedding
 
                 clue.save()
                 clue_count += 1
