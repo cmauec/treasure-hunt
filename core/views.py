@@ -19,7 +19,9 @@ from django.views.generic.edit import CreateView
 
 from .forms import CustomUserCreationForm
 from .models import Clue, TreasureHunt, UserProgress
-from .utils import generate_image_embedding, optimize_image
+
+# from .utils import generate_image_embedding, optimize_image
+from .utils import optimize_image
 
 
 def login_view(request):

@@ -3,9 +3,9 @@ gunicorn==23.0.0
 django-storages[s3]==1.13.2
 Pillow==11.1.0
 python-dotenv==1.0.1
-numpy==1.24.3
-torch==2.1.2
-transformers==4.36.2
+# numpy==1.24.3
+# torch==2.1.2
+# transformers==4.36.2
 psycopg2-binary==2.9.10
 boto3==1.35.96
 pgvector==0.3.6
