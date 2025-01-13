@@ -34,3 +34,28 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  deploy-to-apprunner:
+    name: Deploy to AWS App Runner
+    runs-on: ubuntu-latest
+    needs: build-and-push-ecr
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update App Runner service
+        env:
+          ECR_REPOSITORY: treasure-hunt
+          IMAGE_TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          APPRUNNER_SERVICE_ARN: ${{ secrets.AWS_APPRUNNER_SERVICE_ARN }}
+        run: |
+          echo "ImageIdentifier value: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          aws apprunner update-service \
+            --service-arn "$APPRUNNER_SERVICE_ARN" \
+            --source-configuration "ImageRepository={ImageIdentifier=\"$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG\",ImageRepositoryType=\"ECR\"}"
