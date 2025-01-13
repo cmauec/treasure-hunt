@@ -19,7 +19,7 @@ from django.views.generic.edit import CreateView
 
 from .forms import CustomUserCreationForm
 from .models import Clue, TreasureHunt, UserProgress
-from .utils import generate_image_embedding
+from .utils import generate_image_embedding, optimize_image
 
 
 def login_view(request):
@@ -322,7 +322,8 @@ def create_hunt(request):
             # Handle main image upload
             main_image = request.FILES.get("image")
             if main_image:
-                hunt.image = main_image
+                optimized_image = optimize_image(main_image)
+                hunt.image = optimized_image
                 hunt.save()
 
             # Process clues
@@ -350,7 +351,8 @@ def create_hunt(request):
                     f"clues[{clue_count}][reference_image]"
                 )
                 if reference_image:
-                    clue.reference_image = reference_image
+                    optimized_image = optimize_image(reference_image)
+                    clue.reference_image = optimized_image
                     image_embedding = generate_image_embedding(reference_image)
                     clue.image_embedding = image_embedding
                     clue.save()
@@ -442,7 +444,8 @@ def edit_hunt(request, hunt_id):
                 hunt.image.delete()
                 hunt.image = None
             elif main_image:
-                hunt.image = main_image
+                optimized_image = optimize_image(main_image)
+                hunt.image = optimized_image
 
             hunt.save()
 
@@ -497,17 +500,12 @@ def edit_hunt(request, hunt_id):
                 )
 
                 if remove_image == "on" and clue.reference_image:
-                    # Delete the existing image from Google Cloud Storage
-                    try:
-                        default_storage.delete(clue.reference_image.name)
-                        print(f"Imagen borrada: {clue.reference_image.name}")
-                    except Exception as e:
-                        print(f"Error al borrar la imagen: {e}")
+                    clue.reference_image.delete()
                     clue.reference_image = None
                     clue.image_embedding = None
                 elif reference_image:
-                    # If a new image is uploaded, it automatically replaces the existing one using Django's FileField
-                    clue.reference_image = reference_image
+                    optimized_image = optimize_image(reference_image)
+                    clue.reference_image = optimized_image
                     image_embedding = generate_image_embedding(reference_image)
                     clue.image_embedding = image_embedding
 

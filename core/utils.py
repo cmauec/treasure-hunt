@@ -6,6 +6,8 @@ import torch
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import numpy as np  # Importa numpy si quieres la opción de devolver un array
+from io import BytesIO
+from django.core.files import File
 
 
 def generate_image_embedding(image_file, as_list=True):
@@ -43,3 +45,38 @@ def generate_image_embedding(image_file, as_list=True):
         return image_embedding_norm[0].tolist()
     else:
         return image_embedding_norm.cpu().numpy()[0]
+
+
+def optimize_image(image_field, max_size_kb=500):
+    """
+    Optimize the image to reduce its file size while maintaining quality.
+
+    Args:
+        image_field: The image field from the form
+        max_size_kb: Maximum size in kilobytes (default 500KB)
+
+    Returns:
+        Django File object with the optimized image
+    """
+    if not image_field:
+        return None
+
+    img = Image.open(image_field)
+
+    # Convert to RGB if image is in RGBA mode
+    if img.mode == "RGBA":
+        img = img.convert("RGB")
+
+    # Initial quality
+    quality = 80
+    max_size_bytes = max_size_kb * 1024
+
+    # Create a BytesIO object to store the optimized image
+    output = BytesIO()
+
+    # Save the image with the initial quality
+    img.save(output, format="JPEG", quality=quality, optimize=True)
+
+    # Create a new Django file object
+    output.seek(0)
+    return File(output, name=image_field.name)
