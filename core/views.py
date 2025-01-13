@@ -229,51 +229,44 @@ def verify_location(request, hunt_id):
         abs(current_clue.latitude - user_lat) <= margin
         and abs(current_clue.longitude - user_lng) <= margin
     ):
-
         # Get the next clue
         next_clue = progress.treasure_hunt.clues.filter(
             order__gt=current_clue.order
         ).first()
 
+        # Award points for completing the current clue
+        progress.total_points += progress.treasure_hunt.points_per_clue
+
         if next_clue:
             # Update the user to the next clue
             progress.current_clue = next_clue
-            # Award points for completing the current clue
-            progress.total_points += progress.treasure_hunt.points_per_clue
             progress.save()
             return JsonResponse(
                 {
                     "success": True,
                     "message": current_clue.unlock_message,
-                    "next_clue": {
-                        "hint_text": next_clue.hint_text,
-                        "order": next_clue.order,
-                    },
+                    "next_clue": True,
                 }
             )
-
-        # The user has completed all the clues
-        progress.is_completed = True
-        # Award points for completing the last clue and the bonus for completing the hunt
-        progress.total_points += (
-            progress.treasure_hunt.points_per_clue
-            + progress.treasure_hunt.completion_points
-        )
-        # Register the completion date
-        progress.completed_at = timezone.now()
-        progress.save()
-        return JsonResponse(
-            {
-                "success": True,
-                "message": "¡Congratulations! You have completed the treasure hunt",
-                "completed": True,
-            }
-        )
+        else:
+            # This was the last clue - mark as completed
+            progress.is_completed = True
+            progress.completed_at = timezone.now()
+            progress.total_points += progress.treasure_hunt.completion_points
+            progress.save()
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": current_clue.unlock_message,
+                    "completed": True,
+                    "completion_url": reverse("hunt_completion", args=[hunt_id]),
+                }
+            )
 
     return JsonResponse(
         {
             "success": False,
-            "message": "The location does not match the current clue. Keep searching!",
+            "message": "You're not close enough to the clue location. Keep searching!",
         }
     )
 
@@ -677,3 +670,37 @@ def view_hunt_participants(request, hunt_id):
         "participants": participants,
     }
     return render(request, "core/hunt_participants.html", context)
+
+
+@login_required
+def hunt_completion(request, hunt_id):
+    """
+    View function for displaying the completion page of a treasure hunt.
+    Shows statistics about the hunt completion.
+    """
+    treasure_hunt = get_object_or_404(TreasureHunt, pk=hunt_id)
+    progress = get_object_or_404(
+        UserProgress, user=request.user, treasure_hunt=treasure_hunt
+    )
+
+    if not progress.is_completed:
+        return redirect("view_hunt", hunt_id=hunt_id)
+
+    # Calculate time taken
+    time_taken = progress.completed_at - progress.started_at
+    print(time_taken)
+    total_seconds = (
+        time_taken.total_seconds()
+    )  # Use total_seconds to avoid issues with timedelta
+    hours = int(total_seconds // 3600)
+    minutes = int((total_seconds % 3600) // 60)
+    time_taken_str = f"{hours}h {minutes}m" if hours > 0 else f"{minutes}m"
+    print(time_taken_str)
+
+    context = {
+        "treasure_hunt": treasure_hunt,
+        "time_taken": time_taken_str,
+        "total_clues": treasure_hunt.clues.count(),
+        "total_points": progress.total_points,
+    }
+    return render(request, "core/hunt_completion.html", context)

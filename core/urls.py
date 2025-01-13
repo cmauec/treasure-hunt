@@ -19,12 +19,15 @@ urlpatterns = [
     path("edit/<uuid:hunt_id>/", views.edit_hunt, name="edit_hunt"),
     path("delete/<uuid:hunt_id>/", views.delete_hunt, name="delete_hunt"),
     path("signup/", views.SignUpView.as_view(), name="signup"),
+    path("hunt/delete/<uuid:hunt_id>/", views.delete_hunt, name="delete_hunt"),
     path(
-        "treasure-hunts/delete/<uuid:hunt_id>/", views.delete_hunt, name="delete_hunt"
-    ),
-    path(
-        "treasure-hunts/<uuid:hunt_id>/participants/",
+        "hunt/<uuid:hunt_id>/participants/",
         views.view_hunt_participants,
         name="hunt_participants",
+    ),
+    path(
+        "hunt/<uuid:hunt_id>/completion/",
+        views.hunt_completion,
+        name="hunt_completion",
     ),
 ]

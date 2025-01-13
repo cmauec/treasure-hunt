@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ treasure_hunt.title }} - Completed!{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>{{ treasure_hunt.title }} - Completed!</h1>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Hunt Statistics</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card text-center mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Time Taken</h5>
+                            <p class="card-text display-4">{{ time_taken }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Clues Completed</h5>
+                            <p class="card-text display-4">{{ total_clues }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Points</h5>
+                            <p class="card-text display-4">{{ total_points }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-success mt-4">
+                <p>{{ treasure_hunt.completion_message }}</p>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="{% url 'treasure_hunt_list' %}" class="btn btn-primary">Back to Hunt List</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

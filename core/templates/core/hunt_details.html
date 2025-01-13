@@ -94,7 +94,7 @@
                                             You have completed this hunt!
                                         </div>
                                         <p>Points obtained: {{ user_progress.total_points }}</p>
-                                        <a href="{% url 'view_hunt' treasure_hunt.id %}" class="btn btn-primary w-100">
+                                        <a href="{% url 'hunt_completion' treasure_hunt.id %}" class="btn btn-primary w-100">
                                             View Details
                                         </a>
                                     {% else %}
