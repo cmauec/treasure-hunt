@@ -8,9 +8,21 @@ import uuid
 import os
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from pgvector.django import VectorField
+
+
+@receiver(post_save, sender=User)
+def assign_default_permissions(sender, instance, created, **kwargs):
+    """
+    Signal handler to assign default permissions to newly created users.
+    """
+    if created:
+        permission = Permission.objects.get(codename="can_create_hunts")
+        instance.user_permissions.add(permission)
 
 
 def clue_image_path(instance, filename):
