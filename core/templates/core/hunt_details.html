@@ -2,20 +2,12 @@
 
 {% block title %}{{ treasure_hunt.title }} - Details{% endblock %}
 
+{% block breadcrumb_content %}
+<li class="breadcrumb-item active" aria-current="page">{{ treasure_hunt.title }}</li>
+{% endblock %}
+
 {% block content %}
 {% include 'core/components/loading.html' %}
-
-<div class="container">
-    <div class="row mb-4">
-        <div class="col">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{% url 'treasure_hunt_list' %}">Treasure Hunts</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ treasure_hunt.title }}</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
 
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">

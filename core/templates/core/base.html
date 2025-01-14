@@ -35,6 +35,15 @@
     </nav>
 
     <div class="container mt-4">
+        {% block breadcrumb %}
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'treasure_hunt_list' %}">Home</a></li>
+                {% block breadcrumb_content %}{% endblock %}
+            </ol>
+        </nav>
+        {% endblock %}
+
         {% if messages %}
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }}">

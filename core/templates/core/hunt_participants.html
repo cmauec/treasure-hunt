@@ -1,6 +1,11 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Participants - {{ treasure_hunt.title }}{% endblock %}
+{% block title %}{{ treasure_hunt.title }} - Participants{% endblock %}
+
+{% block breadcrumb_content %}
+<li class="breadcrumb-item"><a href="{% url 'hunt_details' treasure_hunt.id %}">{{ treasure_hunt.title }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">Participants</li>
+{% endblock %}
 
 {% block content %}
 {% include 'core/components/loading.html' %}

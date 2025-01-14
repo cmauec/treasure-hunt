@@ -1,6 +1,11 @@
 {% extends 'core/base.html' %}
 
-{% block title %}{{ treasure_hunt.title }} - Completed!{% endblock %}
+{% block title %}{{ treasure_hunt.title }} - Completion{% endblock %}
+
+{% block breadcrumb_content %}
+<li class="breadcrumb-item"><a href="{% url 'hunt_details' treasure_hunt.id %}">{{ treasure_hunt.title }}</a></li>
+<li class="breadcrumb-item active" aria-current="page">Completion</li>
+{% endblock %}
 
 {% block content %}
 <div class="container">
