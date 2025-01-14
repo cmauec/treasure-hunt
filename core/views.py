@@ -390,6 +390,23 @@ def delete_hunt(request, hunt_id):
 
     if request.method == "POST":
         title = hunt.title
+
+        # Delete main hunt image if it exists
+        if hunt.image:
+            try:
+                hunt.image.delete()
+            except Exception as e:
+                print(f"Error deleting hunt main image: {e}")
+
+        # Delete all clue images
+        for clue in hunt.clues.all():
+            if clue.reference_image:
+                try:
+                    clue.reference_image.delete()
+                except Exception as e:
+                    print(f"Error deleting clue image: {e}")
+
+        # Delete the hunt (this will cascade delete clues)
         hunt.delete()
         messages.success(request, f'The treasure hunt "{title}" has been deleted')
         return JsonResponse({"success": True})
